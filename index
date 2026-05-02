@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Salary Hike Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f6fa;color:#1a1a2e;min-height:100vh}
+.app{max-width:920px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:14px;color:#6b7280;margin-bottom:24px}
+.tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:20px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;font-weight:500;cursor:pointer;color:#6b7280;transition:all .18s}
+.tab.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.card{background:#fff;border-radius:14px;border:0.5px solid #e5e7eb;padding:24px;margin-bottom:20px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.toggle-label{font-size:13px;color:#6b7280;font-weight:500}
+.toggle{display:flex;background:#f3f4f6;border-radius:8px;padding:3px;gap:2px}
+.toggle button{padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:#6b7280;background:transparent;transition:all .15s}
+.toggle button.active{background:#fff;color:#4f46e5;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em}
+input[type=number],select{width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;color:#1a1a2e;background:#fff;outline:none;transition:border .15s;appearance:none}
+input[type=number]:focus,select:focus{border-color:#4f46e5}
+input.err{border-color:#ef4444}
+.err-msg{font-size:11px;color:#ef4444;margin-top:2px}
+.prefix-wrap{position:relative}
+.prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#9ca3af;pointer-events:none}
+.prefix-wrap input{padding-left:26px}
+.suffix-wrap{position:relative}
+.suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:#9ca3af;pointer-events:none}
+.suffix-wrap input{padding-right:30px}
+.btn-calc{width:100%;padding:13px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:20px;transition:background .15s}
+.btn-calc:hover{background:#4338ca}
+.results{display:none;margin-top:20px}
+.results.show{display:block}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.metric{background:#f8f7ff;border-radius:10px;padding:14px 16px;border:0.5px solid #e0e7ff}
+.metric .mlabel{font-size:11px;color:#6366f1;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.metric .mval{font-size:19px;font-weight:700;color:#3730a3}
+.metric .msub{font-size:11px;color:#818cf8;margin-top:2px}
+.metric.green{background:#f0fdf4;border-color:#bbf7d0}.metric.green .mlabel{color:#16a34a}.metric.green .mval{color:#15803d}.metric.green .msub{color:#4ade80}
+.metric.amber{background:#fffbeb;border-color:#fde68a}.metric.amber .mlabel{color:#d97706}.metric.amber .mval{color:#b45309}.metric.amber .msub{color:#fbbf24}
+.metric.red{background:#fff1f2;border-color:#fecdd3}.metric.red .mlabel{color:#e11d48}.metric.red .mval{color:#be123c}
+.divider{border:none;border-top:0.5px solid #f3f4f6;margin:16px 0}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid #f3f4f6;font-size:13px}
+.breakdown-row:last-child{border:none;font-weight:600;font-size:14px}
+.breakdown-row span:first-child{color:#6b7280}
+.highlight-row span{color:#1a1a2e!important;font-weight:700}
+.comparison-card{background:#f8f7ff;border-radius:10px;padding:16px;border:0.5px solid #e0e7ff;flex:1}
+.comparison-card.offer{background:#f0fdf4;border-color:#bbf7d0}
+.comparison-card h3{font-size:13px;font-weight:700;margin-bottom:12px;color:#6366f1;text-transform:uppercase;letter-spacing:.04em}
+.comparison-card.offer h3{color:#16a34a}
+.compare-flex{display:flex;gap:14px;flex-wrap:wrap}
+.regime-toggle{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.regime-btn{flex:1;min-width:120px;padding:9px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#6b7280;transition:all .15s;text-align:center}
+.regime-btn.active{border-color:#4f46e5;color:#4f46e5;background:#f8f7ff}
+.section-label{font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px}
+.optional-tag{font-size:10px;background:#f3f4f6;color:#9ca3af;padding:2px 7px;border-radius:8px;font-weight:500;margin-left:6px}
+.verdict{border-radius:12px;padding:18px 20px;margin-bottom:16px;border:1.5px solid}
+.verdict.excellent{background:#f0fdf4;border-color:#86efac}
+.verdict.good{background:#eff6ff;border-color:#93c5fd}
+.verdict.average{background:#fffbeb;border-color:#fcd34d}
+.verdict.switch{background:#fff1f2;border-color:#fca5a5}
+.verdict-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.verdict.excellent .verdict-title{color:#15803d}
+.verdict.good .verdict-title{color:#1d4ed8}
+.verdict.average .verdict-title{color:#b45309}
+.verdict.switch .verdict-title{color:#be123c}
+.verdict-body{font-size:13px;line-height:1.6;color:#374151}
+.bench-wrap{margin:14px 0}
+.bench-label{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:6px;flex-wrap:wrap;gap:4px}
+.bench-track{background:#f3f4f6;border-radius:20px;height:10px;position:relative;overflow:visible}
+.bench-fill{height:100%;border-radius:20px}
+.bench-marker{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transform:translateX(-50%)}
+.bench-zones{display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;margin-top:4px}
+
+/* Multi-select sector grid */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;max-height:340px;overflow-y:auto;padding:4px 2px}
+.sector-group{margin-bottom:12px}
+.sector-group-label{font-size:11px;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;padding:0 2px}
+.sector-chip{display:flex;align-items:center;gap-8px;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:#374151;background:#fff;transition:all .15s;gap:8px;user-select:none}
+.sector-chip:hover{border-color:#a5b4fc;background:#f8f7ff}
+.sector-chip.selected{border-color:#4f46e5;background:#ede9fe;color:#3730a3}
+.sector-chip input[type=checkbox]{width:14px;height:14px;accent-color:#4f46e5;cursor:pointer;flex-shrink:0}
+.sector-search{width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;margin-bottom:10px}
+.sector-search:focus{border-color:#4f46e5}
+.selected-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:28px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:#ede9fe;color:#3730a3;border-radius:20px;font-size:11px;font-weight:600}
+.tag-x{cursor:pointer;font-size:13px;color:#6366f1;line-height:1}
+.tag-x:hover{color:#be123c}
+select.std{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>💼 Salary Hike Calculator</h1>
+  <p class="subtitle">Calculate increments, benchmark your salary & estimate take-home — India focused</p>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('calc')">Calculator</button>
+    <button class="tab" onclick="switchTab('bench')">Salary Benchmark</button>
+    <button class="tab" onclick="switchTab('compare')">Offer Comparison</button>
+    <button class="tab" onclick="switchTab('tax')">Tax Estimator</button>
+  </div>
+
+  <!-- CALCULATOR TAB -->
+  <div id="tab-calc">
+    <div class="card">
+      <div class="card-title">📊 Salary Details</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Salary Mode:</span>
+        <div class="toggle">
+          <button class="active" id="mode-monthly" onclick="setMode('monthly')">Monthly</button>
+          <button id="mode-annual" onclick="setMode('annual')">Annual</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Current CTC <span id="mode-label">(Monthly)</span></label>
+          <div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="current-sal" placeholder="e.g. 80000" min="0"/></div>
+          <span class="err-msg" id="err-sal"></span>
+        </div>
+        <div class="field">
+          <label>Hike Percentage</label>
+          <div class="suffix-wrap"><input type="number" id="hike-pct" placeholder="e.g. 15" min="0" max="200"/><span class="suffix">%</span></div>
+          <span class="err-msg" id="err-hike"></span>
+        </div>
+      </div>
+      <div class="section-label">Variable & Bonus <span class="optional-tag">Optional</span></div>
+      <div class="grid3">
+        <div class="field"><label>Annual Bonus</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="bonus" placeholder="0" min="0"/></div></div>
+        <div class="field"><label>Variable Pay (Current)</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="variable" placeholder="0" min="0"/></div></div>
+        <div class="field"><label>Variable Pay (New)</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="variable-new" placeholder="0" min="0"/></div></div>
+      </div>
+      <button class="btn-calc" onclick="calculate()">Calculate →</button>
+    </div>
+    <div class="results" id="results-main">
+      <div class="card">
+        <div class="card-title">✨ Results</div>
+        <div class="metric-grid" id="metric-grid"></div>
+        <hr class="divider"/>
+        <div class="section-label">CTC Breakdown (Annual)</div>
+        <div id="ctc-breakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENCHMARK TAB -->
+  <div id="tab-bench" style="display:none">
+    <div class="card">
+      <div class="card-title">🏭 Salary Benchmark by Sector & Experience</div>
+
+      <div class="field" style="margin-bottom:16px">
+        <label>Search & Select Your Sector(s) — pick all that apply</label>
+        <input type="text" class="sector-search" id="sector-search" placeholder="🔍  Type to filter sectors..." oninput="filterSectors()"/>
+        <div class="sector-grid" id="sector-grid"></div>
+        <div class="selected-tags" id="selected-tags"></div>
+        <span class="err-msg" id="err-sector"></span>
+      </div>
+
+      <div class="grid2" style="margin-top:4px">
+        <div class="field">
+          <label>Your Role Level</label>
+          <select id="b-role" class="std">
+            <option value="">— Select Role —</option>
+            <option value="entry">Entry Level / Fresher</option>
+            <option value="junior">Junior (1–3 yrs)</option>
+            <option value="mid">Mid-Level (4–7 yrs)</option>
+            <option value="senior">Senior (8–12 yrs)</option>
+            <option value="lead">Lead / Architect / Manager (12–18 yrs)</option>
+            <option value="director">Director / VP (18+ yrs)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Years of Experience</label>
+          <div class="suffix-wrap"><input type="number" id="b-exp" placeholder="e.g. 5" min="0" max="45"/><span class="suffix">yrs</span></div>
+          <span class="err-msg" id="err-exp"></span>
+        </div>
+        <div class="field">
+          <label>Your Current Annual CTC</label>
+          <div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="b-ctc" placeholder="e.g. 1200000"/></div>
+          <span class="err-msg" id="err-bctc"></span>
+        </div>
+        <div class="field">
+          <label>Offered Hike %</label>
+          <div class="suffix-wrap"><input type="number" id="b-hike" placeholder="e.g. 12" min="0"/><span class="suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label>City Tier</label>
+          <select id="b-city" class="std">
+            <option value="1">Tier 1 (Mumbai, Delhi, Pune, Chennai)</option>
+            <option value="1.1">Bengaluru / Hyderabad (Tech Premium)</option>
+            <option value="0.85">Tier 2 (Ahmedabad, Kochi, Jaipur…)</option>
+            <option value="0.70">Tier 3 / Remote</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-calc" onclick="benchmark()">Analyse My Salary →</button>
+    </div>
+    <div class="results" id="results-bench">
+      <div id="bench-output"></div>
+    </div>
+  </div>
+
+  <!-- OFFER COMPARISON TAB -->
+  <div id="tab-compare" style="display:none">
+    <div class="card">
+      <div class="card-title">⚖️ Compare Offers</div>
+      <div class="grid2">
+        <div>
+          <div class="section-label">Current Package</div>
+          <div class="field" style="margin-bottom:12px"><label>Annual CTC</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="c-current" placeholder="e.g. 960000"/></div></div>
+          <div class="field" style="margin-bottom:12px"><label>Annual Bonus</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="c-bonus" placeholder="0"/></div></div>
+          <div class="field"><label>Variable Pay</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="c-variable" placeholder="0"/></div></div>
+        </div>
+        <div>
+          <div class="section-label">New Offer</div>
+          <div class="field" style="margin-bottom:12px"><label>Offered CTC</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="o-ctc" placeholder="e.g. 1200000"/></div></div>
+          <div class="field" style="margin-bottom:12px"><label>Annual Bonus</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="o-bonus" placeholder="0"/></div></div>
+          <div class="field"><label>Variable Pay</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="o-variable" placeholder="0"/></div></div>
+        </div>
+      </div>
+      <button class="btn-calc" onclick="compareOffers()">Compare →</button>
+    </div>
+    <div class="results" id="results-compare">
+      <div class="card">
+        <div class="card-title">📋 Comparison Summary</div>
+        <div class="compare-flex" id="compare-cards"></div>
+        <div class="divider"></div>
+        <div id="compare-breakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAX TAB -->
+  <div id="tab-tax" style="display:none">
+    <div class="card">
+      <div class="card-title">🧾 India Tax Estimator (FY 2024–25)</div>
+      <div class="grid2">
+        <div class="field"><label>Annual CTC</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="t-ctc" placeholder="e.g. 1200000"/></div></div>
+        <div class="field"><label>HRA Exemption (Annual)</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="t-hra" placeholder="e.g. 120000"/></div></div>
+        <div class="field"><label>Professional Tax (Annual)</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="t-pt" placeholder="e.g. 2400"/></div></div>
+        <div class="field"><label>80C Investments</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="t-80c" placeholder="max 150000"/></div></div>
+        <div class="field"><label>80D (Medical Insurance)</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="t-80d" placeholder="max 25000"/></div></div>
+        <div class="field"><label>NPS (80CCD 1B)</label><div class="prefix-wrap"><span class="prefix">₹</span><input type="number" id="t-nps" placeholder="max 50000"/></div></div>
+      </div>
+      <div class="section-label">Tax Regime</div>
+      <div class="regime-toggle">
+        <button class="regime-btn active" id="reg-old" onclick="setRegime('old')">Old Regime</button>
+        <button class="regime-btn" id="reg-new" onclick="setRegime('new')">New Regime</button>
+        <button class="regime-btn" id="reg-both" onclick="setRegime('both')">Compare Both</button>
+      </div>
+      <button class="btn-calc" onclick="calcTax()">Estimate Tax →</button>
+    </div>
+    <div class="results" id="results-tax"><div class="card" id="tax-output"></div></div>
+  </div>
+</div>
+
+<script>
+let salaryMode='monthly', taxRegime='old';
+let selectedSectors = new Set();
+
+// ─── SKILLS ROADMAP TO P75 / P90 ─────────────────────────────────────────────
+function buildSkillsRoadmap(sectorKeys, roleKey, ctcL, p75, p90, exp) {
+  // Per-sector skill profiles
+  const SECTOR_SKILLS = {
+    // IT & Software
+    'it-software':     { tech:['Full-stack dev (React/Node/Spring)','System design & architecture','REST/GraphQL APIs','CI/CD pipelines (Jenkins/GitHub Actions)','Docker & Kubernetes'], certs:['AWS SAA / GCP ACE','System Design (Grokking)','Kubernetes CKA'], soft:['Agile/Scrum ownership','Code review leadership','Cross-team collaboration'] },
+    'it-product':      { tech:['Product engineering (React/TypeScript)','Microservices & event-driven arch','A/B testing & feature flags','Observability (Datadog/Grafana)','API design & versioning'], certs:['AWS SAA','CKAD','Google Cloud Professional'], soft:['Product thinking','OKR-driven delivery','Stakeholder communication'] },
+    'it-services':     { tech:['Enterprise frameworks (Java/.NET)','Oracle/SAP modules','Salesforce/ServiceNow','ITIL process alignment','Test automation (Selenium/Cypress)'], certs:['PMP / Prince2','ITIL 4','SAP Certified','Salesforce Admin'], soft:['Client management','Pre-sales support','Delivery ownership'] },
+    'startup-early':   { tech:['Full-stack rapid prototyping','Cloud-native development','Serverless (Lambda/Cloud Functions)','Analytics integration (Mixpanel/Amplitude)','Security basics (OWASP)'], certs:['AWS SAA','Terraform Associate'], soft:['0-to-1 ownership','Wear multiple hats','Bias for action'] },
+    'startup-growth':  { tech:['Scalable architecture design','Platform engineering','Data pipeline (Kafka/Spark)','Multi-region deployment','Performance optimization'], certs:['AWS SAP','CKA','Staff Eng. leadership programs'], soft:['Technical leadership','Hiring & mentoring','Cross-functional alignment'] },
+    'gcc':             { tech:['Global delivery models','Enterprise architecture','Compliance & data residency','SAP/Oracle ERP modules','Cloud migration (Lift & Shift)'], certs:['TOGAF','AWS SAP','PMP','SAFe Agilist'], soft:['Global stakeholder mgmt','Process excellence','Executive reporting'] },
+    // Emerging Tech
+    'data-ai':         { tech:['Python (Pandas/NumPy/Sklearn)','Deep learning (PyTorch/TensorFlow)','MLOps & model serving','SQL + BigQuery/Redshift','Feature engineering & EDA'], certs:['Google Professional ML Engineer','AWS ML Specialty','Databricks Associate'], soft:['Business problem framing','Experiment design','Storytelling with data'] },
+    'genai':           { tech:['LLM fine-tuning (LoRA/QLoRA)','Prompt engineering & RAG pipelines','LangChain / LlamaIndex','Vector databases (Pinecone/Weaviate)','Hugging Face ecosystem'], certs:['DeepLearning.AI specializations','AWS Bedrock','Azure OpenAI certs'], soft:['AI product sense','Research paper reading','Cross-functional AI evangelism'] },
+    'mlops':           { tech:['Kubeflow / MLflow / ZenML','Model monitoring & drift detection','Feature stores (Feast)','Infrastructure-as-Code (Terraform)','CI/CD for ML (GitHub Actions/Argo)'], certs:['CKA','Google Professional MLOps','AWS DevOps Pro'], soft:['Platform mindset','Reliability engineering','Collaboration with data scientists'] },
+    'blockchain':      { tech:['Solidity / Rust smart contracts','EVM & Layer-2 protocols','DeFi protocol architecture','Web3.js / ethers.js','NFT & tokenomics design'], certs:['Certified Blockchain Developer (CBDE)','Ethereum dev bootcamps'], soft:['Crypto market awareness','Community & DAO governance','Risk thinking'] },
+    'iot':             { tech:['Embedded C/C++','RTOS (FreeRTOS/Zephyr)','MQTT / CoAP protocols','Edge computing (AWS Greengrass)','PCB design basics'], certs:['AWS IoT Core','Embedded Systems Coursera specialization'], soft:['Hardware-software co-design','Field deployment experience','Safety-critical thinking'] },
+    'ar-vr':           { tech:['Unity / Unreal Engine','3D asset pipeline','Shader programming','WebXR / WebGL','Spatial audio & haptics'], certs:['Unity Certified Developer','Meta Spark AR','Apple Vision Pro SDK'], soft:['UX for immersive experiences','Rapid prototyping','Creative collaboration'] },
+    // Cloud & Infra
+    'cloud-devops':    { tech:['Terraform / Pulumi IaC','Kubernetes & Helm','Observability (Prometheus/Grafana/Loki)','GitOps (ArgoCD/Flux)','Multi-cloud strategy (AWS+Azure)'], certs:['AWS DevOps Pro / SAP','CKA + CKAD','HashiCorp Terraform Associate'], soft:['SRE mindset (SLO/SLA)','Incident management','Blameless postmortems'] },
+    'cybersecurity':   { tech:['SIEM (Splunk/Microsoft Sentinel)','Penetration testing (Metasploit/Burp)','Zero Trust architecture','Cloud security posture mgmt','Threat modelling (STRIDE)'], certs:['CISSP','CEH / OSCP','AWS Security Specialty','CompTIA Security+'], soft:['Risk communication to leadership','Cross-team security champion','Regulatory knowledge (GDPR/ISO 27001)'] },
+    'network-infra':   { tech:['BGP/OSPF routing protocols','SD-WAN (Cisco Viptela)','Network automation (Ansible/Python)','Firewall (Palo Alto/Fortinet)','IPv6 migration'], certs:['CCNP / CCIE','AWS Advanced Networking','Palo Alto PCNSE'], soft:['Change management','Vendor negotiation','24x7 on-call discipline'] },
+    'database-admin':  { tech:['PostgreSQL / MySQL tuning','Oracle DBA (RAC/ASM)','NoSQL (MongoDB/Cassandra)','Database migration (DMS)','Query optimization & indexing'], certs:['Oracle OCP','MongoDB Certified DBA','AWS Database Specialty'], soft:['Capacity planning','DR/BCP planning','Developer collaboration'] },
+    // Tech Support
+    'ts-helpdesk':     { tech:['ITSM tools (ServiceNow/Jira Service Mgmt)','Active Directory & Azure AD','Basic networking (TCP/IP/DNS/DHCP)','Windows/Linux desktop support','Remote desktop tools (AnyDesk/TeamViewer)'], certs:['CompTIA A+','ITIL 4 Foundation','Microsoft MD-100'], soft:['Patience & empathy','SLA adherence','Clear incident documentation'] },
+    'ts-l2-app':       { tech:['Application log analysis (Splunk/ELK)','SQL queries for data troubleshooting','API testing (Postman)','ITIL change & problem management','Scripting (PowerShell/Bash)'], certs:['ITIL 4 Foundation','CompTIA Network+','AWS Cloud Practitioner'], soft:['Root cause analysis','Escalation judgment','Knowledge base authoring'] },
+    'ts-l3-sme':       { tech:['Deep application debugging (heap dumps/thread analysis)','Performance profiling (JProfiler/New Relic)','Database query debugging','Infrastructure as Code basics','Custom automation scripting'], certs:['ITIL 4 Managing Professional','AWS Solutions Architect','Relevant app vendor certs (Oracle/SAP/Salesforce)'], soft:['Technical mentoring (L1/L2)','Vendor escalation management','Knowledge transfer & runbooks'] },
+    'ts-noc':          { tech:['Network monitoring tools (PRTG/Zabbix/SolarWinds)','Incident triage & escalation workflows','BGP/OSPF basics','Firewall rule analysis','On-call runbook execution'], certs:['CompTIA Network+','CCNA','ITIL 4 Foundation'], soft:['High-pressure incident calmness','Shift handover discipline','Escalation protocol adherence'] },
+    'ts-saas-cs':      { tech:['SaaS platform deep product knowledge','API integration troubleshooting','CRM tools (Salesforce/HubSpot)','Data migration & onboarding flows','Usage analytics (Amplitude/Mixpanel)'], certs:['Salesforce Admin','Gainsight CS certification','ITIL 4'], soft:['Customer empathy & retention mindset','Executive stakeholder handling','Churn risk identification'] },
+    'ts-prod-support': { tech:['Production monitoring (Datadog/Dynatrace)','Log aggregation (ELK/Splunk)','Database query debugging','Incident war-room coordination','Rollback & deployment procedures'], certs:['ITIL 4 Managing Professional','AWS SysOps Admin','Relevant platform certs'], soft:['P1/P2 incident command','Cross-team bridge management','Post-mortem facilitation'] },
+    'ts-it-ops':       { tech:['ITSM platform admin (ServiceNow)','Patch management & endpoint security','CMDB maintenance','Cloud operations (Azure/AWS basics)','Monitoring dashboards'], certs:['ITIL 4 Foundation + MP','ServiceNow CSA','Microsoft Azure Fundamentals'], soft:['Change advisory board participation','SLA & OLA governance','Vendor management'] },
+    'ts-desktop':      { tech:['OS imaging & deployment (SCCM/Intune)','Hardware diagnostics & repair','VPN & endpoint security','Printer/peripheral management','Mobile device management (MDM)'], certs:['CompTIA A+','Microsoft MD-100','ITIL 4 Foundation'], soft:['Field service discipline','User training & documentation','Parts/vendor coordination'] },
+    'ts-cloud-support':{ tech:['AWS/Azure/GCP service troubleshooting','IAM & permissions debugging','VPC networking & security groups','Terraform basics for infra changes','Cost optimization & billing analysis'], certs:['AWS SysOps Administrator','Azure Administrator (AZ-104)','Google Cloud ACE'], soft:['Technical escalation writing','Customer-facing ticket quality','Cloud architecture awareness'] },
+    // BFSI
+    'banking':         { tech:['Core banking systems (Finacle/FIS)','Payment rails (SWIFT/UPI/NACH)','Regulatory reporting (RBI/SEBI)','Risk modelling basics','API integration for digital banking'], certs:['FRM / CFA Level 1','CISA','PMP','NISM certifications'], soft:['Regulatory awareness','Audit readiness','Stakeholder management'] },
+    'fintech':         { tech:['Payment gateway integration','Lending/credit risk models','PCI-DSS compliance','Real-time data pipelines','Mobile-first product development'], certs:['AWS SAA','PCI-DSS Implementer','CFA Level 1'], soft:['Regulatory compliance mindset','Product-engineering collaboration','Speed-to-market thinking'] },
+    'insurtech':       { tech:['Insurance policy mgmt systems','Actuarial data integration','Claims automation (RPA)','Digital distribution platform','Fraud detection ML models'], certs:['FIII (Insurance Institute of India)','AWS SAA','PMP'], soft:['Regulatory (IRDAI) awareness','Underwriting process knowledge','Partner/broker management'] },
+    'wealth-tech':     { tech:['Portfolio management systems','Algo trading & quant basics','SEBI compliance frameworks','Robo-advisory platform development','Real-time market data feeds'], certs:['CFA Level 1/2','NISM Series V-A','AWS SAA'], soft:['Client trust & confidentiality','Financial product knowledge','Risk communication'] },
+    'risk-compliance': { tech:['GRC tools (MetricStream/RSA Archer)','AML/KYC process automation','Model risk validation','Regulatory change management','Data lineage & governance'], certs:['FRM','CAMS (AML)','CISA','ISO 31000'], soft:['Regulatory relationship management','Risk escalation judgement','Board-level reporting'] },
+    // Healthcare
+    'healthcare-it':   { tech:['HL7 FHIR / DICOM standards','EMR/EHR systems (Epic/Cerner)','Healthcare data interoperability','HIPAA compliance implementation','Telemedicine platform development'], certs:['AWS Healthcare Competency','HL7 FHIR Certification','PMP'], soft:['Clinical workflow understanding','Compliance mindset','Cross-domain (IT + clinical) translation'] },
+    'pharma-it':       { tech:['Clinical data management systems (Medidata/Veeva)','GxP validation','Regulatory submission systems (eCTD)','Lab informatics (LIMS)','R/Python for clinical analytics'], certs:['SAS Clinical Analyst','Veeva Vault Admin','AWS SAA'], soft:['FDA/CDSCO regulatory awareness','Data integrity discipline','Cross-functional trial collaboration'] },
+    'healthtech':      { tech:['FHIR APIs & health data interoperability','Wearable & IoT integration','AI diagnostics model development','Patient engagement platforms','HIPAA-compliant cloud architecture'], certs:['AWS Healthcare','Google Health AI','PMP'], soft:['Clinical empathy','Rapid iteration with doctors','Patient data privacy mindset'] },
+    // E-commerce
+    'ecommerce':       { tech:['E-commerce platform (Magento/Shopify/custom)','Recommendation engines','Search & relevance (Elasticsearch)','Logistics & OMS integration','A/B testing & conversion optimization'], certs:['AWS SAA','Google Analytics Certified','Shopify Partner'], soft:['Customer journey thinking','Peak traffic ops (Big Billion Day)','Seller/buyer ecosystem mindset'] },
+    'fmcg':            { tech:['ERP (SAP S/4HANA)','Demand forecasting models','Supply chain analytics','Trade promotion mgmt tools','Retail analytics (Nielsen/IRI data)'], certs:['SAP SCM Certified','PMP','Lean Six Sigma'], soft:['Market & consumer insight','Channel partner management','GTM execution'] },
+    'd2c-brand':       { tech:['Shopify Plus / custom storefront','CRM & loyalty platform (Klaviyo/Clevertap)','Performance marketing analytics','Warehouse management system','Social commerce integration'], certs:['Google Ads','Meta Blueprint','Klaviyo Certified'], soft:['Brand storytelling','Community building','D2C unit economics understanding'] },
+    // Media & Marketing
+    'media':           { tech:['Programmatic advertising (DV360/TTD)','Content management systems (WordPress/Contentful)','SEO & SEM tools','Video production & OTT platforms','Social media analytics'], certs:['Google Analytics 4','HubSpot Content Marketing','Meta Blueprint'], soft:['Creative-tech collaboration','Audience insight','Brand safety awareness'] },
+    'adtech':          { tech:['DSP/SSP/DMP architecture','Real-time bidding (RTB) systems','Attribution modelling (MTA)','Identity resolution (UID 2.0)','Cookieless tracking strategies'], certs:['Google Ads Advanced','IAB Digital Media Buying','AWS SAA'], soft:['Privacy-first mindset','Publisher & advertiser relationship mgmt','Data-driven storytelling'] },
+    'ux-design':       { tech:['Figma & design systems','Prototyping & usability testing','Accessibility (WCAG 2.1)','Motion design (After Effects)','Research synthesis & journey mapping'], certs:['Google UX Design Certificate','Interaction Design Foundation','NN/g UX Certification'], soft:['Design critique facilitation','Engineering collaboration','Business outcome orientation'] },
+    // Engineering
+    'manufacturing':   { tech:['CAD/CAM (SolidWorks/CATIA)','Six Sigma & Lean manufacturing','PLC & SCADA programming','Industry 4.0 / IIoT','Quality systems (IATF/ISO 9001)'], certs:['Six Sigma Black Belt','PMP','Lean Manufacturing (SME)'], soft:['Plant floor leadership','Cross-functional NPI','Vendor & supplier mgmt'] },
+    'auto-ev':         { tech:['AUTOSAR / embedded automotive SW','CAN/LIN/Ethernet protocols','ADAS sensor fusion','BMS (Battery Management Systems)','HIL/SIL testing frameworks'], certs:['Functional Safety (ISO 26262)','MATLAB Certified','Automotive SPICE'], soft:['OEM-Tier1 collaboration','Safety culture','Homologation awareness'] },
+    'aerospace':       { tech:['CATIA V5/V6 or NX','Structural FEA (Ansys/Nastran)','DO-178C software standards','MIL-STD compliance','Composites & materials knowledge'], certs:['AS9100 Auditor','INCOSE CSEP','PMP'], soft:['Safety-first engineering discipline','Govt/DRDO/defence liaison','Program management'] },
+    // Telecom
+    'telecom':         { tech:['BSS/OSS systems','4G LTE / 5G NR protocols','Network slicing & NFV','Diameter & SS7 signalling','OSS automation (Python/Ansible)'], certs:['CCNP SP','5G from Ericsson/Nokia Academy','AWS Advanced Networking'], soft:['Operator relationship mgmt','SLA-driven ops discipline','Large-scale change management'] },
+    '5g-tech':         { tech:['5G NR air interface','Massive MIMO & beamforming','O-RAN architecture','Network function virtualisation (NFV)','RF planning tools (Atoll/Planet)'], certs:['5G Certification (3GPP track)','CCNP Wireless','Ericsson/Nokia specialist certs'], soft:['Cross-vendor interoperability','Field deployment leadership','Research-to-product translation'] },
+    // EdTech
+    'edtech':          { tech:['LMS platforms (Moodle/Canvas/custom)','Video streaming & CDN','Adaptive learning algorithms','Gamification mechanics','Mobile-first learning UX'], certs:['AWS SAA','Google Analytics','Instructional Design Certification'], soft:['Learner empathy','Content-product collaboration','Outcome measurement mindset'] },
+    'research':        { tech:['Academic research methodology','Statistical analysis (R/SPSS/Stata)','Scientific writing & publishing','Grant proposal writing','Data visualisation for policy'], certs:['PhD / Post-doc','Domain-specific board certs'], soft:['Critical thinking','Peer collaboration','Policy translation'] },
+    // Consulting
+    'consulting':      { tech:['Strategy frameworks (BCG matrix/Porter\'s 5)','Financial modelling (Excel/Tableau)','Process mapping & BPR','Data analytics for insight','ERP implementation mgmt'], certs:['CFA / CPA / CA','PMP','Six Sigma Black Belt','MBA (IIM/ISB/IIT preferred)'], soft:['Executive presence','Structured problem-solving','Client trust & engagement delivery'] },
+    'it-consulting':   { tech:['Enterprise architecture (TOGAF)','ERP/CRM implementation (SAP/Oracle/SF)','Cloud migration strategy','Business process automation','Solution design & RFP response'], certs:['TOGAF 9','SAP/Oracle Certified','AWS SAP','PMP'], soft:['Pre-sales & solutioning','C-suite stakeholder management','Cross-geography delivery'] },
+    'legal-tech':      { tech:['Contract lifecycle management (CLM) tools','E-discovery platforms (Relativity)','Legal workflow automation','Compliance monitoring systems','Data privacy tooling (OneTrust)'], certs:['CIPP/E (IAPP)','CompTIA Security+','PMP'], soft:['Legal domain knowledge','Regulatory change tracking','Attorney-client collaboration'] },
+    // Govt
+    'govt-psu':        { tech:['e-Governance platforms','GeM & CPPP procurement systems','GIS & spatial data (QGIS)','NIC infrastructure','SAP for PSU finance'], certs:['CSS / UPSC competitive exams','ISTQB','PMP (for project roles)'], soft:['Policy understanding','Stakeholder mgmt (ministries/departments)','Audit compliance mindset'] },
+    'defence-tech':    { tech:['Embedded defence systems','RTOS & safety-critical software','Radar / sonar signal processing','Cryptography & secure comms','SystemC / VHDL / FPGA'], certs:['DRDO/ISRO internal training','DO-178C','Functional Safety (IEC 61508)'], soft:['Security clearance discipline','Long programme patience','Government liaison'] },
+  };
+
+  // Determine gap level
+  const alreadyAtP75 = ctcL >= p75;
+  const alreadyAtP90 = ctcL >= p90;
+  const yrsToNextLevel = roleKey==='entry'?3:roleKey==='junior'?4:roleKey==='mid'?5:roleKey==='senior'?6:roleKey==='lead'?6:0;
+  const nextRole = {entry:'Junior',junior:'Mid-Level',mid:'Senior',senior:'Lead/Architect',lead:'Director/VP',director:'C-Suite / Partner'}[roleKey];
+
+  // Build skill profile — blend across selected sectors
+  let allTech=[], allCerts=[], allSoft=[];
+  sectorKeys.forEach(k => {
+    const s = SECTOR_SKILLS[k];
+    if(!s) return;
+    allTech.push(...s.tech); allCerts.push(...s.certs); allSoft.push(...s.soft);
+  });
+  // Dedupe
+  const uniq = arr => [...new Set(arr)];
+  allTech=uniq(allTech); allCerts=uniq(allCerts); allSoft=uniq(allSoft);
+
+  const pill = (txt, color) => `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;margin:3px 3px 3px 0;background:${color.bg};color:${color.txt}">${txt}</span>`;
+  const techPills  = allTech.slice(0,8).map(t=>pill(t,{bg:'#ede9fe',txt:'#3730a3'})).join('');
+  const certPills  = allCerts.slice(0,6).map(c=>pill(c,{bg:'#fef3c7',txt:'#92400e'})).join('');
+  const softPills  = allSoft.slice(0,5).map(s=>pill(s,{bg:'#dcfce7',txt:'#166534'})).join('');
+
+  const roadmapBlock = (target, lpa, timeEst, items) => `
+    <div style="border:1.5px solid #e0e7ff;border-radius:10px;padding:16px;margin-bottom:12px;background:#fff">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div>
+          <span style="font-size:14px;font-weight:700;color:#1a1a2e">${target}</span>
+          <span style="margin-left:8px;background:#ede9fe;color:#4f46e5;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700">${fmtL(lpa)} LPA</span>
+        </div>
+        <span style="font-size:11px;color:#6b7280;background:#f3f4f6;padding:4px 10px;border-radius:8px">⏱ ${timeEst}</span>
+      </div>
+      ${items}
+    </div>`;
+
+  const section = (icon, title, pills) => pills ? `
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${icon} ${title}</div>
+      <div>${pills}</div>
+    </div>` : '';
+
+  const p75Time = alreadyAtP75 ? 'Already achieved!' : (ctcL>=p25 ? '12–18 months with focused upskilling' : '18–30 months of deliberate growth');
+  const p90Time = alreadyAtP90 ? 'Already achieved!' : (ctcL>=p75 ? '12–24 months, role switch may accelerate' : '2–4 years of consistent growth + role switch');
+
+  const p75Block = roadmapBlock(
+    `🎯 Reach P75 — Top Quartile`, p75, p75Time,
+    section('⚙️','Technical Skills to Add', techPills) +
+    section('📜','Certifications That Help', certPills) +
+    section('🤝','Soft Skills That Matter', softPills) +
+    `<div style="font-size:12px;color:#374151;background:#f8f7ff;border-radius:8px;padding:10px 12px;margin-top:8px;line-height:1.7">
+      <strong>How to get there:</strong> Focus on owning end-to-end delivery rather than just task execution. Get at least <strong>1–2 of the listed certifications</strong>. If in IT Services, target a move to a <strong>Product or GCC company</strong> — same skills, 30–50% higher pay. Document your impact with <strong>quantifiable outcomes</strong> (e.g. "reduced MTTR by 40%", "handled 200+ tickets/month with 98% SLA").
+    </div>`
+  );
+
+  const p90Block = roadmapBlock(
+    `🚀 Reach P90 — Top 10%`, p90, p90Time,
+    section('⚙️','Advanced Technical Skills', allTech.slice(0,5).map(t=>pill('Advanced: '+t,{bg:'#fdf2f8',txt:'#9d174d'})).join('')) +
+    section('📜','Senior / Expert Certifications', allCerts.slice(0,4).map(c=>pill('Expert: '+c,{bg:'#fff7ed',txt:'#9a3412'})).join('')) +
+    section('🤝','Leadership Capabilities', [
+      'Technical decision-making authority',
+      'Hiring & growing a team',
+      'Architecture / design ownership',
+      'Executive stakeholder management',
+      'Cross-org influence without authority'
+    ].map(s=>pill(s,{bg:'#f0fdf4',txt:'#14532d'})).join('')) +
+    `<div style="font-size:12px;color:#374151;background:#fff7ed;border-radius:8px;padding:10px 12px;margin-top:8px;line-height:1.7">
+      <strong>How to get there:</strong> P90 requires a combination of <strong>deep specialisation + leadership scope</strong>. Consider moving to the next role level (<strong>${nextRole}</strong>) — this alone typically jumps you ${yrsToNextLevel>0?`in ~${yrsToNextLevel} years`:'significantly'}. Publish articles, speak at meetups, or open-source contributions establish expert credibility. Target <strong>GCCs, MNCs, or top-tier product companies</strong> (FAANG-adjacent). Compensation at P90 is usually <strong>negotiation-driven</strong> — competing offers are essential.
+    </div>`
+  );
+
+  return `
+    <hr class="divider"/>
+    <div class="section-label">🗺️ Skills & Experience Roadmap to P75 / P90</div>
+    <div style="background:#f8f7ff;border:1.5px solid #e0e7ff;border-radius:12px;padding:18px 20px;margin-bottom:4px">
+      <p style="font-size:13px;color:#374151;margin-bottom:16px;line-height:1.6">
+        Based on your selected sector(s) and <strong>${exp} years of experience</strong> at the <strong>${ROLE_LABELS[roleKey]}</strong> level, here's what it takes to reach the top quartile and top 10% of the market.
+      </p>
+      ${alreadyAtP75 && alreadyAtP90
+        ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;font-size:13px;color:#15803d;font-weight:600">🌟 You're already at or above P90. Focus on equity, title, and total compensation negotiation rather than chasing base salary alone.</div>`
+        : p75Block + (alreadyAtP75 ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;color:#15803d;font-weight:600;margin-bottom:12px">✅ You've already reached P75. Focus on P90 now.</div>` : '') + p90Block
+      }
+    </div>`;
+}
+
+// [p25, median, p75, p90] in LPA. City multiplier applied on top.
+const SECTOR_GROUPS = {
+  "💻 Core IT & Software": {
+    'it-software':      { name:'IT / Software (General)',           entry:[4,6,8,12],      junior:[8,12,18,25],   mid:[18,26,38,55],    senior:[35,50,75,110],  lead:[60,90,130,200],  director:[120,180,280,400] },
+    'it-product':       { name:'Product / SaaS Company',           entry:[6,9,12,18],     junior:[12,18,28,40],  mid:[25,38,55,80],    senior:[50,75,110,160], lead:[90,130,200,300], director:[180,280,400,600] },
+    'it-services':      { name:'IT Services / Outsourcing (TCS, Infosys, Wipro)', entry:[3.5,5,7,10], junior:[7,10,14,20], mid:[14,20,28,40], senior:[28,40,58,80], lead:[50,70,100,150], director:[90,130,200,300] },
+    'startup-early':    { name:'Early-stage Startup (Seed/Series A)', entry:[3,5,8,14],   junior:[6,11,18,30],   mid:[14,24,40,65],    senior:[28,48,80,130],  lead:[50,85,140,220],  director:[100,170,270,420] },
+    'startup-growth':   { name:'Growth Startup (Series B/C/Unicorn)', entry:[5,8,12,18],  junior:[10,16,26,38],  mid:[20,32,50,75],    senior:[40,62,95,140],  lead:[75,115,175,260], director:[140,210,320,500] },
+    'gcc':              { name:'GCC / Global Capability Centre',    entry:[6,9,13,18],     junior:[12,18,26,38],  mid:[22,34,52,75],    senior:[45,68,100,150], lead:[85,128,190,275], director:[160,240,360,540] },
+  },
+  "🤖 Emerging Tech": {
+    'data-ai':          { name:'Data Science / AI / ML',            entry:[6,9,13,18],     junior:[12,18,28,42],  mid:[28,42,60,90],    senior:[55,80,120,170], lead:[100,150,220,320], director:[180,280,400,600] },
+    'genai':            { name:'Generative AI / LLM Engineering',   entry:[8,12,18,25],    junior:[15,22,35,52],  mid:[32,50,72,110],   senior:[65,100,150,220],lead:[120,180,260,380], director:[200,320,480,700] },
+    'mlops':            { name:'MLOps / AI Infrastructure',         entry:[7,10,15,22],    junior:[13,20,30,45],  mid:[26,40,58,85],    senior:[50,75,110,165], lead:[95,140,210,310],  director:[170,260,380,560] },
+    'blockchain':       { name:'Blockchain / Web3',                 entry:[6,9,13,19],     junior:[11,17,26,40],  mid:[22,35,55,82],    senior:[45,70,108,160], lead:[85,130,195,290],  director:[160,250,375,560] },
+    'iot':              { name:'IoT / Embedded Systems',            entry:[4,6,9,13],      junior:[8,12,18,27],   mid:[16,24,36,54],    senior:[30,46,70,105],  lead:[55,82,125,185],   director:[100,155,235,350] },
+    'ar-vr':            { name:'AR / VR / XR / Gaming Tech',        entry:[4,6.5,9,13],    junior:[8,13,19,28],   mid:[16,25,38,56],    senior:[30,47,72,108],  lead:[54,82,125,185],   director:[95,148,226,340] },
+  },
+  "☁️ Cloud, DevOps & Infra": {
+    'cloud-devops':     { name:'Cloud / DevOps / SRE',              entry:[5,8,11,16],     junior:[10,16,24,35],  mid:[22,33,50,72],    senior:[42,62,92,135],  lead:[78,115,165,245],  director:[140,210,300,450] },
+    'cybersecurity':    { name:'Cybersecurity / InfoSec',           entry:[5,7,10,15],     junior:[10,15,22,32],  mid:[22,32,48,70],    senior:[40,60,90,130],  lead:[75,110,160,240],  director:[150,220,320,480] },
+    'network-infra':    { name:'Network / Infrastructure Engineer', entry:[3.5,5,7,10],    junior:[6,9,13,19],    mid:[12,18,27,40],    senior:[22,34,51,76],   lead:[38,58,87,130],    director:[70,108,165,248] },
+    'database-admin':   { name:'Database Administrator / DBA',      entry:[4,5.5,8,11],    junior:[7,10,15,22],   mid:[13,20,30,44],    senior:[25,38,57,85],   lead:[44,67,100,150],   director:[80,122,185,278] },
+  },
+  "🛠️ Technical Support": {
+    'ts-helpdesk':      { name:'L1 — Helpdesk / Service Desk',      entry:[2.5,3.5,4.5,5.5], junior:[3.5,5,6.5,8], mid:[5,7,9,12],     senior:[7,10,14,18],    lead:[12,17,24,32],    director:[22,32,48,70]   },
+    'ts-l2-app':        { name:'L2 — Application Support Analyst',  entry:[3.5,5,7,9],     junior:[5,7.5,10,14],  mid:[7,10,14,20],     senior:[12,17,24,35],   lead:[20,28,40,58],    director:[38,55,80,120]  },
+    'ts-l3-sme':        { name:'L3 — Senior Tech Support / SME',    entry:[4.5,6.5,9,12],  junior:[7,10,14,20],   mid:[12,17,25,36],    senior:[20,30,45,65],   lead:[35,50,72,105],   director:[60,90,135,200] },
+    'ts-noc':           { name:'NOC / Network Operations Centre',   entry:[2.5,3.5,5,6.5], junior:[3.5,5,7,10],   mid:[5,8,11,17],      senior:[9,13,20,30],    lead:[16,24,36,52],    director:[30,45,68,100]  },
+    'ts-saas-cs':       { name:'Customer Success / SaaS Support',   entry:[3.5,5.5,8,11],  junior:[6,9,13,18],    mid:[10,15,22,32],    senior:[18,27,40,58],   lead:[30,45,65,95],    director:[55,85,130,190] },
+    'ts-prod-support':  { name:'Production Support / L2-L3 Hybrid', entry:[4,6,8,11],      junior:[6,9,13,19],    mid:[9,14,21,30],     senior:[16,24,36,52],   lead:[28,42,62,90],    director:[50,76,115,170] },
+    'ts-it-ops':        { name:'IT Operations / ITSM (ITIL)',        entry:[3,4.5,6,8],     junior:[5,7,10,14],    mid:[8,12,18,26],     senior:[14,21,32,46],   lead:[24,36,54,78],    director:[44,66,100,148] },
+    'ts-desktop':       { name:'Desktop Support / Field Engineer',   entry:[2.2,3,4,5.5],   junior:[3,4.5,6,8.5],  mid:[5,7,10,14],      senior:[8,12,17,25],    lead:[13,19,28,40],    director:[24,36,54,80]   },
+    'ts-cloud-support': { name:'Cloud Support Engineer (AWS/Azure)', entry:[4,6,9,13],      junior:[7,11,17,25],   mid:[14,21,32,47],    senior:[25,38,57,85],   lead:[44,67,100,148],  director:[80,122,182,272]},
+  },
+  "💰 BFSI & Fintech": {
+    'banking':          { name:'Banking / BFSI (Traditional)',       entry:[4,6,9,13],      junior:[8,12,17,25],   mid:[16,24,35,52],    senior:[32,48,72,105],  lead:[58,85,130,190],  director:[110,170,260,400] },
+    'fintech':          { name:'Fintech / Payments / Neobanking',    entry:[5,8,12,17],     junior:[10,16,25,38],  mid:[22,34,50,75],    senior:[45,68,100,150], lead:[85,128,190,280], director:[160,240,360,540] },
+    'insurtech':        { name:'Insurtech / Insurance Tech',         entry:[4,6,9,13],      junior:[8,12,18,26],   mid:[16,24,36,54],    senior:[30,46,70,105],  lead:[55,83,125,185],  director:[100,153,232,347] },
+    'wealth-tech':      { name:'Wealth Management / WealthTech',     entry:[5,7.5,11,16],   junior:[9,14,21,31],   mid:[18,28,42,63],    senior:[35,54,82,122],  lead:[65,98,148,220],  director:[120,182,275,412] },
+    'risk-compliance':  { name:'Risk & Compliance / RegTech',        entry:[4,6,9,13],      junior:[8,12,18,27],   mid:[15,23,35,52],    senior:[28,43,65,97],   lead:[50,76,115,172],  director:[92,140,210,315] },
+  },
+  "🏥 Healthcare & Life Sciences": {
+    'healthcare-it':    { name:'Healthcare IT / Hospital Systems',   entry:[3.5,5.5,8,12],  junior:[7,10,15,22],   mid:[14,20,30,45],    senior:[28,42,62,92],   lead:[50,75,110,165],  director:[95,145,220,330] },
+    'pharma-it':        { name:'Pharma IT / Clinical Data',          entry:[4,6,9,13],      junior:[8,12,18,27],   mid:[15,23,35,52],    senior:[28,43,65,97],   lead:[50,76,115,172],  director:[92,140,210,315] },
+    'healthtech':       { name:'HealthTech / Digital Health Startup',entry:[4,6.5,10,15],   junior:[8,13,20,30],   mid:[16,26,40,60],    senior:[32,50,76,114],  lead:[58,88,132,198],  director:[106,162,244,366]},
+  },
+  "🛒 E-commerce & Consumer": {
+    'ecommerce':        { name:'E-commerce / Retail Tech',           entry:[4,6,9,14],      junior:[8,13,20,30],   mid:[18,28,42,62],    senior:[38,56,84,125],  lead:[70,105,155,230], director:[130,200,300,450] },
+    'fmcg':             { name:'FMCG / Consumer Goods',              entry:[4,6,8.5,12],    junior:[8,12,17,25],   mid:[16,24,34,50],    senior:[30,46,68,100],  lead:[55,82,122,182],  director:[105,160,245,365] },
+    'd2c-brand':        { name:'D2C Brand / Consumer Internet',      entry:[3.5,5.5,8,12],  junior:[7,11,17,25],   mid:[15,23,35,52],    senior:[28,43,65,97],   lead:[50,76,115,172],  director:[92,140,210,315] },
+  },
+  "📣 Media, Marketing & Design": {
+    'media':            { name:'Media / Digital Marketing',          entry:[3,4.5,6.5,9],   junior:[6,9,13,19],    mid:[12,18,27,40],    senior:[22,34,51,76],   lead:[38,58,87,130],   director:[70,108,165,248] },
+    'adtech':           { name:'AdTech / MarTech',                   entry:[3.5,5.5,8,12],  junior:[7,11,17,25],   mid:[14,22,33,50],    senior:[25,38,58,87],   lead:[45,68,103,154],  director:[83,126,190,285] },
+    'ux-design':        { name:'UX / Product Design',                entry:[4,6,9,13],      junior:[8,13,19,28],   mid:[16,25,38,57],    senior:[30,47,72,108],  lead:[54,82,125,187],  director:[100,152,230,345] },
+  },
+  "🏭 Core Engineering & Manufacturing": {
+    'manufacturing':    { name:'Manufacturing / Core Engineering',   entry:[3,4.5,6.5,9],   junior:[5.5,8,12,17],  mid:[11,16,24,36],    senior:[22,33,50,74],   lead:[38,58,85,128],   director:[70,110,170,255] },
+    'auto-ev':          { name:'Automotive / EV / ADAS',             entry:[3.5,5,7,10],    junior:[6,9,14,20],    mid:[13,20,30,44],    senior:[25,38,57,85],   lead:[44,67,100,150],  director:[80,122,185,278] },
+    'aerospace':        { name:'Aerospace / Defence Engineering',    entry:[4,6,8.5,12],    junior:[7,11,16,23],   mid:[14,22,33,50],    senior:[26,40,60,90],   lead:[46,70,106,158],  director:[85,130,197,296] },
+  },
+  "📡 Telecom & Infrastructure": {
+    'telecom':          { name:'Telecom / Network Ops',              entry:[3.5,5.5,8,11],  junior:[7,10,15,22],   mid:[14,20,30,44],    senior:[26,40,60,88],   lead:[46,70,105,158],  director:[85,130,200,300] },
+    '5g-tech':          { name:'5G / Wireless / RF Engineering',     entry:[4,6,9,13],      junior:[7,11,17,25],   mid:[14,22,33,50],    senior:[26,40,60,90],   lead:[46,70,106,158],  director:[85,130,197,296] },
+  },
+  "🎓 Education & Research": {
+    'edtech':           { name:'EdTech Platform',                    entry:[3.5,5,7,11],    junior:[7,10,15,22],   mid:[14,21,32,48],    senior:[28,43,65,95],   lead:[52,78,115,170],  director:[90,140,210,320] },
+    'research':         { name:'Research & Academia / Think Tank',   entry:[4,6,8.5,12],    junior:[7,11,16,23],   mid:[13,20,30,44],    senior:[22,34,51,75],   lead:[38,58,87,130],   director:[68,105,158,237] },
+  },
+  "⚙️ Consulting & Professional Services": {
+    'consulting':       { name:'Management Consulting (MBB/Big4)',   entry:[8,12,16,22],    junior:[14,20,30,44],  mid:[25,38,56,82],    senior:[50,75,110,165], lead:[95,142,210,310], director:[180,270,400,600] },
+    'it-consulting':    { name:'IT Consulting / Systems Integrator', entry:[4,6,9,13],      junior:[8,12,18,27],   mid:[16,24,36,54],    senior:[30,46,70,105],  lead:[55,83,125,185],  director:[100,152,230,345] },
+    'legal-tech':       { name:'LegalTech / Compliance SaaS',        entry:[4,6,9,13],      junior:[8,12,18,27],   mid:[15,23,35,52],    senior:[28,43,65,97],   lead:[50,76,115,172],  director:[92,140,210,315] },
+  },
+  "🏛️ Government & PSU": {
+    'govt-psu':         { name:'Govt / PSU (Central/State)',         entry:[5,7,9,11],      junior:[8,11,14,18],   mid:[13,18,24,30],    senior:[20,28,38,50],   lead:[32,44,58,75],    director:[55,75,100,130] },
+    'defence-tech':     { name:'Defence PSU / DRDO / ISRO Tech',     entry:[5,7,9.5,13],    junior:[8.5,12,17,24], mid:[14,21,32,46],    senior:[24,36,54,80],   lead:[40,60,90,134],   director:[70,107,162,243] },
+  },
+};
+
+// Flatten for easy lookup
+const SECTORS = {};
+Object.values(SECTOR_GROUPS).forEach(grp => Object.assign(SECTORS, grp));
+
+const ROLES = ['entry','junior','mid','senior','lead','director'];
+const ROLE_LABELS = {entry:'Entry',junior:'Junior (1–3y)',mid:'Mid (4–7y)',senior:'Senior (8–12y)',lead:'Lead/Mgr (12–18y)',director:'Director/VP (18+)'};
+const HIKE_BENCHMARK = {
+  entry:[5,8,12,18], junior:[5,8,12,18], mid:[6,10,15,22],
+  senior:[7,12,18,28], lead:[8,13,20,30], director:[8,13,20,30],
+};
+
+// ─── SECTOR CHIP UI ──────────────────────────────────────────────────────────
+function buildSectorGrid(filter='') {
+  const f = filter.toLowerCase();
+  const grid = document.getElementById('sector-grid');
+  grid.innerHTML = '';
+  Object.entries(SECTOR_GROUPS).forEach(([grpName, sectors]) => {
+    const matches = Object.entries(sectors).filter(([k,v]) => !f || v.name.toLowerCase().includes(f) || grpName.toLowerCase().includes(f));
+    if (!matches.length) return;
+    const grpDiv = document.createElement('div');
+    grpDiv.className = 'sector-group';
+    grpDiv.innerHTML = `<div class="sector-group-label">${grpName}</div>`;
+    matches.forEach(([key, sec]) => {
+      const chip = document.createElement('label');
+      chip.className = 'sector-chip' + (selectedSectors.has(key) ? ' selected' : '');
+      chip.innerHTML = `<input type="checkbox" value="${key}" ${selectedSectors.has(key)?'checked':''} onchange="toggleSector('${key}','${sec.name.replace(/'/g,"\\'")}')"/> ${sec.name}`;
+      grpDiv.appendChild(chip);
+    });
+    grid.appendChild(grpDiv);
+  });
+}
+
+function toggleSector(key, name) {
+  if (selectedSectors.has(key)) selectedSectors.delete(key);
+  else selectedSectors.add(key);
+  buildSectorGrid(document.getElementById('sector-search').value);
+  renderTags();
+}
+
+function renderTags() {
+  const container = document.getElementById('selected-tags');
+  container.innerHTML = '';
+  selectedSectors.forEach(key => {
+    const sec = SECTORS[key];
+    if (!sec) return;
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${sec.name} <span class="tag-x" onclick="toggleSector('${key}')">✕</span>`;
+    container.appendChild(tag);
+  });
+}
+
+function filterSectors() {
+  buildSectorGrid(document.getElementById('sector-search').value);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  ['calc','bench','compare','tax'].forEach((x,i) => {
+    document.getElementById('tab-'+x).style.display = x===t ? 'block':'none';
+    document.querySelectorAll('.tab')[i].classList.toggle('active', x===t);
+  });
+}
+function setMode(m) {
+  salaryMode=m;
+  document.getElementById('mode-monthly').classList.toggle('active',m==='monthly');
+  document.getElementById('mode-annual').classList.toggle('active',m==='annual');
+  document.getElementById('mode-label').textContent = m==='monthly'?'(Monthly)':'(Annual)';
+}
+function setRegime(r) {
+  taxRegime=r;
+  ['old','new','both'].forEach(x => document.getElementById('reg-'+x).classList.toggle('active',x===r));
+}
+function fmt(n) { return '₹'+Math.round(n).toLocaleString('en-IN'); }
+function fmtL(n) { return n>=100 ? (n/100).toFixed(1)+' Cr' : n.toFixed(1)+' L'; }
+function autoRole(exp) {
+  if(exp<=0) return 'entry'; if(exp<=3) return 'junior'; if(exp<=7) return 'mid';
+  if(exp<=12) return 'senior'; if(exp<=18) return 'lead'; return 'director';
+}
+
+// ─── CALCULATOR ──────────────────────────────────────────────────────────────
+function calculate() {
+  const sal = parseFloat(document.getElementById('current-sal').value);
+  const hike = parseFloat(document.getElementById('hike-pct').value);
+  let ok=true;
+  if(isNaN(sal)||sal<0){document.getElementById('err-sal').textContent='Required';document.getElementById('current-sal').classList.add('err');ok=false;}
+  else{document.getElementById('err-sal').textContent='';document.getElementById('current-sal').classList.remove('err');}
+  if(isNaN(hike)||hike<0){document.getElementById('err-hike').textContent='Required';document.getElementById('hike-pct').classList.add('err');ok=false;}
+  else{document.getElementById('err-hike').textContent='';document.getElementById('hike-pct').classList.remove('err');}
+  if(!ok) return;
+  const bonus=parseFloat(document.getElementById('bonus').value)||0;
+  const variable=parseFloat(document.getElementById('variable').value)||0;
+  const variableNew=parseFloat(document.getElementById('variable-new').value)||0;
+  const annualCurrent=salaryMode==='monthly'?sal*12:sal;
+  const hikeAmt=annualCurrent*(hike/100);
+  const annualNew=annualCurrent+hikeAmt;
+  const totalCurrentCTC=annualCurrent+bonus+variable;
+  const totalNewCTC=annualNew+bonus+variableNew;
+  const effectivePct=totalCurrentCTC>0?((totalNewCTC-totalCurrentCTC)/totalCurrentCTC*100):0;
+  document.getElementById('metric-grid').innerHTML=`
+    <div class="metric"><div class="mlabel">Hike Amount</div><div class="mval">${fmt(hikeAmt/12)}<span style="font-size:12px;font-weight:400">/mo</span></div><div class="msub">${fmt(hikeAmt)} / year</div></div>
+    <div class="metric green"><div class="mlabel">New Salary</div><div class="mval">${fmt(annualNew/12)}<span style="font-size:12px;font-weight:400">/mo</span></div><div class="msub">${fmt(annualNew)} / year</div></div>
+    <div class="metric amber"><div class="mlabel">Effective Hike</div><div class="mval">${effectivePct.toFixed(1)}%</div><div class="msub">incl. bonus & variable</div></div>
+    <div class="metric"><div class="mlabel">Total New CTC</div><div class="mval">${fmt(totalNewCTC)}</div><div class="msub">Annual package</div></div>
+  `;
+  const basic=annualNew*0.40, hra=basic*0.50, sp=Math.max(0,annualNew-basic-hra-21600-26400);
+  document.getElementById('ctc-breakdown').innerHTML=`
+    <div class="breakdown-row"><span>Basic (40%)</span><span>${fmt(basic)}</span></div>
+    <div class="breakdown-row"><span>HRA (50% of Basic)</span><span>${fmt(hra)}</span></div>
+    <div class="breakdown-row"><span>Special Allowance</span><span>${fmt(sp)}</span></div>
+    <div class="breakdown-row"><span>Employer PF</span><span>${fmt(21600)}</span></div>
+    <div class="breakdown-row"><span>Gratuity</span><span>${fmt(26400)}</span></div>
+    ${bonus>0?`<div class="breakdown-row"><span>Annual Bonus</span><span>${fmt(bonus)}</span></div>`:''}
+    ${variableNew>0?`<div class="breakdown-row"><span>Variable Pay</span><span>${fmt(variableNew)}</span></div>`:''}
+    <div class="breakdown-row highlight-row"><span>Total CTC</span><span>${fmt(totalNewCTC)}</span></div>
+  `;
+  document.getElementById('results-main').classList.add('show');
+}
+
+// ─── BENCHMARK ───────────────────────────────────────────────────────────────
+function benchmark() {
+  const exp = parseFloat(document.getElementById('b-exp').value);
+  const ctcRaw = parseFloat(document.getElementById('b-ctc').value);
+  const hikeVal = parseFloat(document.getElementById('b-hike').value)||0;
+  const cityMul = parseFloat(document.getElementById('b-city').value)||1;
+  let ok=true;
+  if(selectedSectors.size===0){document.getElementById('err-sector').textContent='Please select at least one sector';ok=false;}
+  else document.getElementById('err-sector').textContent='';
+  if(isNaN(exp)||exp<0){document.getElementById('err-exp').textContent='Enter years';ok=false;}
+  else document.getElementById('err-exp').textContent='';
+  if(isNaN(ctcRaw)||ctcRaw<=0){document.getElementById('err-bctc').textContent='Enter CTC';ok=false;}
+  else document.getElementById('err-bctc').textContent='';
+  if(!ok) return;
+
+  const roleKey = document.getElementById('b-role').value || autoRole(exp);
+  const ctcL = ctcRaw/100000;
+  const newCtcL = ctcL*(1+hikeVal/100);
+  const keys = Array.from(selectedSectors);
+
+  // Aggregate: average of selected sectors
+  const bands = keys.map(k => SECTORS[k][roleKey].map(v=>v*cityMul));
+  const avg = (arr) => arr.reduce((a,b)=>a+b,0)/arr.length;
+  const p25 = avg(bands.map(b=>b[0]));
+  const med  = avg(bands.map(b=>b[1]));
+  const p75  = avg(bands.map(b=>b[2]));
+  const p90  = avg(bands.map(b=>b[3]));
+
+  // Position
+  let position, posColor, posText;
+  if(ctcL<p25){position='below-market';posColor='#be123c';posText='Below Market (P25)'}
+  else if(ctcL<med){position='below-median';posColor='#b45309';posText='Below Median'}
+  else if(ctcL<p75){position='above-median';posColor='#1d4ed8';posText='Above Median'}
+  else if(ctcL<p90){position='top-quartile';posColor='#15803d';posText='Top Quartile'}
+  else{position='top-10';posColor='#15803d';posText='Top 10%'}
+
+  const barPct = Math.min(100,Math.max(0,((ctcL-p25)/(p90-p25)*100)));
+  const barNewPct = Math.min(100,Math.max(0,((newCtcL-p25)/(p90-p25)*100)));
+
+  // Hike quality
+  const hikeBands = HIKE_BENCHMARK[roleKey];
+  let hikeVerdict='', hikeClass='', hikeMsg='';
+  if(hikeVal>0){
+    if(hikeVal<hikeBands[0]){hikeVerdict='Below Average Hike';hikeClass='switch';hikeMsg=`${hikeVal}% is low. Industry average is ${hikeBands[1]}–${hikeBands[2]}% for your level.`;}
+    else if(hikeVal<hikeBands[1]){hikeVerdict='Average Hike';hikeClass='average';hikeMsg=`${hikeVal}% is decent but below the good range of ${hikeBands[2]}–${hikeBands[3]}%.`;}
+    else if(hikeVal<hikeBands[2]){hikeVerdict='Good Hike ✓';hikeClass='good';hikeMsg=`${hikeVal}% is a solid hike. You're in the good range for this experience band.`;}
+    else{hikeVerdict='Excellent Hike 🌟';hikeClass='excellent';hikeMsg=`${hikeVal}% is exceptional! Top-tier for your sector and experience level.`;}
+  }
+
+  // Switch/stay verdict
+  let svcClass, svcTitle, svcBody;
+  if(position==='below-market'){
+    svcClass='switch'; svcTitle='⚠️ Likely Underpaid — Explore Options';
+    svcBody=`Your salary of <strong>${fmtL(ctcL)} LPA</strong> is below the 25th percentile. Market median is <strong>${fmtL(med)} LPA</strong>. After this hike you'd be at <strong>${fmtL(newCtcL)} LPA</strong> — still below market. <strong>Consider switching or negotiating aggressively.</strong>`;
+  } else if(position==='below-median'){
+    svcClass='average'; svcTitle='🟡 Slightly Below Median — Negotiate';
+    svcBody=`Your CTC is between P25 and median. After hike: <strong>${fmtL(newCtcL)} LPA</strong>. You have room to push toward the <strong>${fmtL(med)} LPA</strong> median or beyond.`;
+  } else if(position==='above-median'){
+    svcClass='good'; svcTitle='✅ Fairly Paid — Stay or Switch for Growth';
+    svcBody=`You're above median. After hike: <strong>${fmtL(newCtcL)} LPA</strong>. Consider switching for growth if you're targeting P75 (<strong>${fmtL(p75)} LPA</strong>).`;
+  } else {
+    svcClass='excellent'; svcTitle='🌟 Well Compensated';
+    svcBody=`At <strong>${fmtL(ctcL)} LPA</strong> you're in the top 25%. Focus on equity, title, and scope rather than just base hike.`;
+  }
+
+  // Ask insight
+  const minAsk = Math.max(newCtcL, med);
+  const targetAsk = p75;
+  const stretchAsk = p90;
+  const hikeToP75 = ctcL>0 ? ((p75-ctcL)/ctcL*100) : 0;
+  const hikeToMedian = ctcL>0 ? ((med-ctcL)/ctcL*100) : 0;
+
+  let askRange, tactic, urgencyColor;
+  if(newCtcL>=p90){
+    askRange=`${fmtL(newCtcL)} – ${fmtL(stretchAsk*1.05)} LPA`;
+    tactic=`You're at/above P90. Focus on <strong>ESOPs, performance bonus, or title upgrade</strong>. Switching companies can fetch 20–30% premium.`;
+    urgencyColor='#15803d';
+  } else if(newCtcL>=p75){
+    askRange=`${fmtL(newCtcL)} – ${fmtL(stretchAsk)} LPA`;
+    tactic=`Push for P90 (<strong>${fmtL(stretchAsk)} LPA</strong>). Highlight impact, certs, and cross-functional work. Product/SaaS companies typically close this gap quickly.`;
+    urgencyColor='#1d4ed8';
+  } else if(newCtcL>=med){
+    askRange=`${fmtL(targetAsk)} – ${fmtL(stretchAsk)} LPA`;
+    tactic=`Ask <strong>${fmtL(targetAsk)} LPA (P75)</strong> as target. Anchor at ${fmtL(stretchAsk)} LPA (P90). A <strong>${hikeToP75.toFixed(0)}%</strong> total hike from current CTC takes you to P75.`;
+    urgencyColor='#1d4ed8';
+  } else if(newCtcL>=p25){
+    askRange=`${fmtL(med)} – ${fmtL(p75)} LPA`;
+    tactic=`<strong>Don't accept below ${fmtL(med)} LPA.</strong> Ask for ${fmtL(p75)} LPA. A <strong>${hikeToMedian.toFixed(0)}%</strong> hike gets you to median — push harder.`;
+    urgencyColor='#b45309';
+  } else {
+    askRange=`${fmtL(med)} – ${fmtL(p75)} LPA`;
+    tactic=`<strong>Reject below ${fmtL(med)} LPA.</strong> Use competing offers as leverage. A job switch in your sector typically yields 30–50% jump. Target ${fmtL(p75)} LPA.`;
+    urgencyColor='#be123c';
+  }
+
+  const tips = {
+    entry:['Get certified (AWS/Azure/ITIL/CompTIA) — adds 15–25% to ask','Showcase automation or scripting work in interviews','Competing offer letters are your strongest negotiating tool'],
+    junior:['Quantify impact — tickets solved, uptime, resolution time','Move from IT Services to Product companies for 40–60% jump','Stack certs: CCNA, Cloud, ITIL boost ask significantly'],
+    mid:['Ask for P75 as floor, P90 as anchor in negotiation','Cross-functional experience and ownership justify higher ask','Internal role change can bypass hike cycles entirely'],
+    senior:['Senior roles have 20–30% negotiation headroom at offer stage','Leadership + mentoring experience commands a premium','Explore GCCs/MNCs — same role often pays 30–50% more'],
+    lead:['Negotiate total comp: base + variable + equity + perks','Team size and budget ownership justify significantly higher CTC','Market is tight for leads — strong leverage to switch'],
+    director:['Include performance bonuses and stock in total comp ask','Use P&L ownership and board-level impact in negotiations','Executive search firms can surface unlisted senior openings'],
+  };
+  const tipsList = (tips[roleKey]||tips['mid']).map(t=>`<li style="margin-bottom:6px">💡 ${t}</li>`).join('');
+
+  // Skills & experience roadmap to P75/P90
+  const skillsRoadmap = buildSkillsRoadmap(keys, roleKey, ctcL, p75, p90, exp);
+
+
+  // Render multi-sector comparison if >1 selected
+  let multiSectorHTML = '';
+  if(keys.length > 1) {
+    multiSectorHTML = `
+      <hr class="divider"/>
+      <div class="section-label">Per-Sector Breakdown (${ROLE_LABELS[roleKey]})</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#f3f4f6">
+            <th style="padding:8px 10px;text-align:left;color:#6b7280;font-weight:600;border-radius:6px 0 0 6px">Sector</th>
+            <th style="padding:8px 10px;text-align:right;color:#6b7280;font-weight:600">P25</th>
+            <th style="padding:8px 10px;text-align:right;color:#6b7280;font-weight:600">Median</th>
+            <th style="padding:8px 10px;text-align:right;color:#6b7280;font-weight:600">P75</th>
+            <th style="padding:8px 10px;text-align:right;color:#6b7280;font-weight:600;border-radius:0 6px 6px 0">P90</th>
+          </tr></thead>
+          <tbody>${keys.map(k=>{
+            const b = SECTORS[k][roleKey].map(v=>(v*cityMul).toFixed(1));
+            return `<tr style="border-bottom:0.5px solid #f3f4f6">
+              <td style="padding:8px 10px;color:#1a1a2e;font-weight:500">${SECTORS[k].name}</td>
+              <td style="padding:8px 10px;text-align:right;color:#dc2626">${b[0]} L</td>
+              <td style="padding:8px 10px;text-align:right;color:#b45309">${b[1]} L</td>
+              <td style="padding:8px 10px;text-align:right;color:#1d4ed8">${b[2]} L</td>
+              <td style="padding:8px 10px;text-align:right;color:#15803d">${b[3]} L</td>
+            </tr>`;
+          }).join('')}
+          <tr style="background:#f8f7ff;font-weight:700">
+            <td style="padding:8px 10px;color:#4f46e5">Blended Average</td>
+            <td style="padding:8px 10px;text-align:right;color:#dc2626">${p25.toFixed(1)} L</td>
+            <td style="padding:8px 10px;text-align:right;color:#b45309">${med.toFixed(1)} L</td>
+            <td style="padding:8px 10px;text-align:right;color:#1d4ed8">${p75.toFixed(1)} L</td>
+            <td style="padding:8px 10px;text-align:right;color:#15803d">${p90.toFixed(1)} L</td>
+          </tr></tbody>
+        </table>
+      </div>`;
+  }
+
+  const o = document.getElementById('bench-output');
+  o.innerHTML = `
+    <div class="card">
+      <div class="card-title">📍 Salary Benchmark — ${keys.map(k=>SECTORS[k].name).join(', ')}</div>
+
+      <div class="verdict ${svcClass}">
+        <div class="verdict-title">${svcTitle}</div>
+        <div class="verdict-body">${svcBody}</div>
+      </div>
+
+      ${hikeVal>0?`<div class="verdict ${hikeClass}" style="margin-bottom:16px">
+        <div class="verdict-title">${hikeVerdict}</div>
+        <div class="verdict-body">${hikeMsg}</div>
+      </div>`:''}
+
+      <div class="section-label">Market Salary Range (Blended · ${ROLE_LABELS[roleKey]})</div>
+      <div class="bench-wrap">
+        <div class="bench-label">
+          <span>P25: <strong>${fmtL(p25)} LPA</strong></span>
+          <span>Median: <strong>${fmtL(med)} LPA</strong></span>
+          <span>P75: <strong>${fmtL(p75)} LPA</strong></span>
+          <span>P90: <strong>${fmtL(p90)} LPA</strong></span>
+        </div>
+        <div class="bench-track">
+          <div class="bench-fill" style="width:100%;background:linear-gradient(to right,#fee2e2,#fef9c3,#dcfce7);height:10px;border-radius:20px"></div>
+          <div class="bench-marker" style="left:${barPct}%;background:#4f46e5;" title="Your CTC"></div>
+          ${hikeVal>0?`<div class="bench-marker" style="left:${barNewPct}%;background:#16a34a;" title="After hike"></div>`:''}
+        </div>
+        <div class="bench-zones"><span>Low</span><span>← Below Median</span><span>Above Median →</span><span>High</span></div>
+        <div style="margin-top:10px;font-size:12px;color:#6b7280;display:flex;gap:14px;flex-wrap:wrap">
+          <span>🔵 <strong>You:</strong> ${fmtL(ctcL)} LPA <span style="background:#ede9fe;color:${posColor};padding:2px 8px;border-radius:10px;font-weight:600;font-size:11px">${posText}</span></span>
+          ${hikeVal>0?`<span>🟢 <strong>After hike:</strong> ${fmtL(newCtcL)} LPA</span>`:''}
+        </div>
+      </div>
+
+      <hr class="divider"/>
+      <div class="section-label">Blended Range Cards</div>
+      <div class="metric-grid">
+        <div class="metric red"><div class="mlabel">P25 (Entry zone)</div><div class="mval">${fmtL(p25)} L</div><div class="msub">per annum</div></div>
+        <div class="metric amber"><div class="mlabel">Median (P50)</div><div class="mval">${fmtL(med)} L</div><div class="msub">per annum</div></div>
+        <div class="metric green"><div class="mlabel">P75 (Top Quartile)</div><div class="mval">${fmtL(p75)} L</div><div class="msub">per annum</div></div>
+        <div class="metric"><div class="mlabel">P90 (Top 10%)</div><div class="mval">${fmtL(p90)} L</div><div class="msub">per annum</div></div>
+      </div>
+
+      ${multiSectorHTML}
+
+      <hr class="divider"/>
+      <div class="section-label">💬 What Should You Ask For?</div>
+      <div style="background:#f8f7ff;border:1.5px solid #e0e7ff;border-radius:12px;padding:18px 20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:700;color:${urgencyColor}">Negotiation Target</div>
+          <div style="background:#fff;border:1.5px solid #e0e7ff;border-radius:8px;padding:8px 16px;text-align:center">
+            <div style="font-size:10px;color:#6366f1;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Recommended Ask Range</div>
+            <div style="font-size:18px;font-weight:800;color:#3730a3">${askRange}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;margin-bottom:14px">
+          <div style="background:#fff;border-radius:8px;padding:10px 12px;border:0.5px solid #fecdd3;text-align:center">
+            <div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;margin-bottom:3px">Min. Accept</div>
+            <div style="font-size:15px;font-weight:700;color:#dc2626">${fmtL(minAsk)} LPA</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 12px;border:0.5px solid #e0e7ff;text-align:center">
+            <div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;margin-bottom:3px">Target (P75)</div>
+            <div style="font-size:15px;font-weight:700;color:#4f46e5">${fmtL(targetAsk)} LPA</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 12px;border:0.5px solid #bbf7d0;text-align:center">
+            <div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;margin-bottom:3px">Stretch (P90)</div>
+            <div style="font-size:15px;font-weight:700;color:#15803d">${fmtL(stretchAsk)} LPA</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 12px;border:0.5px solid #fde68a;text-align:center">
+            <div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;margin-bottom:3px">Hike to P75</div>
+            <div style="font-size:15px;font-weight:700;color:#b45309">${hikeToP75.toFixed(1)}%</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#374151;line-height:1.7;margin-bottom:14px;padding:12px 14px;background:#fff;border-radius:8px;border:0.5px solid #e0e7ff">
+          🎯 <strong>Strategy:</strong> ${tactic}
+        </div>
+        <div style="font-size:13px;color:#374151">
+          <div style="font-weight:700;color:#4f46e5;margin-bottom:8px">📋 Tips for ${ROLE_LABELS[roleKey]}:</div>
+          <ul style="padding-left:4px;list-style:none;line-height:1.7">${tipsList}</ul>
+        </div>
+      </div>
+      ${skillsRoadmap}
+
+      <hr class="divider"/>
+      <div class="section-label">Industry Hike Norms — ${ROLE_LABELS[roleKey]}</div>
+      <div class="metric-grid">
+        <div class="metric red"><div class="mlabel">Below Avg</div><div class="mval">&lt;${hikeBands[0]}%</div></div>
+        <div class="metric amber"><div class="mlabel">Average</div><div class="mval">${hikeBands[0]}–${hikeBands[1]}%</div></div>
+        <div class="metric"><div class="mlabel">Good</div><div class="mval">${hikeBands[1]}–${hikeBands[2]}%</div></div>
+        <div class="metric green"><div class="mlabel">Excellent</div><div class="mval">&gt;${hikeBands[3]}%</div></div>
+      </div>
+      <p style="font-size:11px;color:#9ca3af;margin-top:14px">* Benchmarks based on India market data (2025–26). City multiplier: ${cityMul}x. Multi-sector shows blended average.</p>
+    </div>
+  `;
+  document.getElementById('results-bench').classList.add('show');
+}
+
+// ─── OFFER COMPARISON ────────────────────────────────────────────────────────
+function compareOffers() {
+  const cCtc=parseFloat(document.getElementById('c-current').value)||0;
+  const cBonus=parseFloat(document.getElementById('c-bonus').value)||0;
+  const cVar=parseFloat(document.getElementById('c-variable').value)||0;
+  const oCtc=parseFloat(document.getElementById('o-ctc').value)||0;
+  const oBonus=parseFloat(document.getElementById('o-bonus').value)||0;
+  const oVar=parseFloat(document.getElementById('o-variable').value)||0;
+  if(!cCtc||!oCtc){alert('Please enter both current and offer CTC.');return;}
+  const cTotal=cCtc+cBonus+cVar, oTotal=oCtc+oBonus+oVar;
+  const diff=oTotal-cTotal, pct=cTotal>0?(diff/cTotal*100):0, up=diff>=0;
+  document.getElementById('compare-cards').innerHTML=`
+    <div class="comparison-card"><h3>Current Package</h3>
+      <div class="breakdown-row"><span>Fixed CTC</span><span>${fmt(cCtc)}</span></div>
+      <div class="breakdown-row"><span>Bonus</span><span>${fmt(cBonus)}</span></div>
+      <div class="breakdown-row"><span>Variable</span><span>${fmt(cVar)}</span></div>
+      <div class="breakdown-row highlight-row"><span>Total</span><span>${fmt(cTotal)}</span></div>
+    </div>
+    <div class="comparison-card offer"><h3>New Offer</h3>
+      <div class="breakdown-row"><span>Fixed CTC</span><span>${fmt(oCtc)}</span></div>
+      <div class="breakdown-row"><span>Bonus</span><span>${fmt(oBonus)}</span></div>
+      <div class="breakdown-row"><span>Variable</span><span>${fmt(oVar)}</span></div>
+      <div class="breakdown-row highlight-row"><span>Total</span><span>${fmt(oTotal)}</span></div>
+    </div>
+  `;
+  document.getElementById('compare-breakdown').innerHTML=`
+    <div class="metric-grid">
+      <div class="metric ${up?'green':'red'}"><div class="mlabel">Difference</div><div class="mval">${up?'+':''}${fmt(diff)}</div><div class="msub">per year</div></div>
+      <div class="metric ${up?'green':'red'}"><div class="mlabel">Hike</div><div class="mval">${up?'+':''}${pct.toFixed(2)}%</div></div>
+      <div class="metric"><div class="mlabel">Monthly Delta</div><div class="mval">${up?'+':''}${fmt(diff/12)}</div></div>
+    </div>
+    <div style="margin-top:14px;padding:12px 16px;background:${up?'#f0fdf4':'#fff1f2'};border-radius:8px;font-size:13px;color:${up?'#15803d':'#be123c'}">
+      ${up?`✅ New offer is <strong>${pct.toFixed(1)}% higher</strong> — gain of <strong>${fmt(diff)}</strong>/year.`:`⚠️ New offer is <strong>${Math.abs(pct).toFixed(1)}% lower</strong> — negotiate before accepting.`}
+    </div>
+  `;
+  document.getElementById('results-compare').classList.add('show');
+}
+
+// ─── TAX ─────────────────────────────────────────────────────────────────────
+function calcTax() {
+  const ctc=parseFloat(document.getElementById('t-ctc').value)||0;
+  if(!ctc){alert('Please enter Annual CTC.');return;}
+  const hra=parseFloat(document.getElementById('t-hra').value)||0;
+  const pt=parseFloat(document.getElementById('t-pt').value)||0;
+  const c80c=Math.min(parseFloat(document.getElementById('t-80c').value)||0,150000);
+  const c80d=Math.min(parseFloat(document.getElementById('t-80d').value)||0,25000);
+  const nps=Math.min(parseFloat(document.getElementById('t-nps').value)||0,50000);
+  function slabOld(ti){let t=0,p=0;for(const[l,r] of[[250000,0],[500000,.05],[1000000,.2],[Infinity,.3]]){t+=Math.min(Math.max(ti-p,0),l-p)*r;p=l;}return Math.round(t*1.04);}
+  function slabNew(ti){let t=0,p=0;for(const[l,r] of[[300000,0],[700000,.05],[1000000,.1],[1200000,.15],[1500000,.2],[Infinity,.3]]){t+=Math.min(Math.max(ti-p,0),l-p)*r;p=l;}return Math.round(t*1.04);}
+  const tiOld=Math.max(0,ctc-hra-pt-50000-c80c-c80d-nps);
+  const tiNew=Math.max(0,ctc-75000);
+  const taxOld=slabOld(tiOld), taxNew=slabNew(tiNew);
+  function rows(tax,ti){
+    const ih=Math.round(ctc-tax-pt-21600);
+    return `
+      <div class="breakdown-row"><span>Taxable Income</span><span>${fmt(ti)}</span></div>
+      <div class="breakdown-row"><span>Tax + 4% Cess</span><span style="color:#e11d48">- ${fmt(tax)}</span></div>
+      <div class="breakdown-row"><span>Professional Tax</span><span style="color:#e11d48">- ${fmt(pt)}</span></div>
+      <div class="breakdown-row"><span>Employee PF</span><span style="color:#e11d48">- ${fmt(21600)}</span></div>
+      <div class="breakdown-row highlight-row"><span>Est. Annual In-hand</span><span style="color:#15803d">${fmt(ih)}</span></div>
+      <div class="breakdown-row"><span>Est. Monthly In-hand</span><span style="color:#15803d">${fmt(ih/12)}</span></div>`;
+  }
+  const o=document.getElementById('tax-output');
+  if(taxRegime==='old'){o.innerHTML=`<div class="card-title">🧾 Old Regime Breakdown</div>${rows(taxOld,tiOld)}`;}
+  else if(taxRegime==='new'){o.innerHTML=`<div class="card-title">🧾 New Regime Breakdown</div>${rows(taxNew,tiNew)}`;}
+  else{
+    const sO=taxNew-taxOld, sN=taxOld-taxNew, better=sO>0;
+    o.innerHTML=`<div class="card-title">⚖️ Old vs New Regime</div>
+    <div class="compare-flex" style="margin-bottom:16px">
+      <div class="comparison-card" style="flex:1"><h3>Old Regime</h3>${rows(taxOld,tiOld)}</div>
+      <div class="comparison-card offer" style="flex:1"><h3>New Regime</h3>${rows(taxNew,tiNew)}</div>
+    </div>
+    <div style="padding:12px 16px;background:${better?'#f0fdf4':'#fffbeb'};border-radius:8px;font-size:13px;color:${better?'#15803d':'#b45309'}">
+      ${better?`✅ Old Regime saves <strong>${fmt(sO)}</strong> — better with high deductions.`:`✅ New Regime saves <strong>${fmt(sN)}</strong> — simpler and lower rate for you.`}
+    </div>`;
+  }
+  document.getElementById('results-tax').classList.add('show');
+}
+
+// Init
+buildSectorGrid();
+</script>
+</body>
+</html>
